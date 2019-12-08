@@ -1,0 +1,43 @@
+version: '2'
+
+services:
+  drone-server:
+    image: drone/drone:latest
+
+    ports:
+      - 3800:8000
+      - 9000
+
+    volumns:
+      - /data/drone-server:/var/lib/drone/
+    restart: always
+
+    environment:
+      # 是否允许注册，false 后只有在 DRONE_ADMIN 变量中指定的账户才能登录
+      - DRONE_OPEN=true
+      # Drone可公开访问的地址
+      - DRONE_HOST=http://47.92.196.35:3800
+      # 配置 Git 仓库，只能同时使用一种仓库
+      - GITRA_PRIVATE_MODE=true
+      - DRONE_GITEA=true
+      - DRONE_GITEA_URL=http://182.92.165.53:7070
+      - DRONE_SECRET=I3_pzu94-mYCAbQg6E2AVw6fg8rHIzoatnI2JYYbGcE=
+      - DRONE_GITEA_CLIENT=23d80443-4616-4789-90bb-e125cf64002c
+      - DRONE_GITEA_SECRET=I3_pzu94-mYCAbQg6E2AVw6fg8rHIzoatnI2JYYbGcE=
+
+      # Drone Server 和 Agent 的通信密钥
+      - DRONE_SECRET=4a6a6J8LJ4Wc82Ukjww1634ev
+  drone-agent:
+    image: drone/agent:latest
+    command: agent
+    restart: always
+    depends_on:
+      - drone-server
+    volumes:
+      - /data/drone-agent/run/docker.sock:/var/run/docker.sock
+    environment:
+      # 配置 SERVER 地址
+      - DRONE_SERVER=drone-server:9000
+      # 配置与 SERVER 通信的密钥，需要与 Server 配置的保持一致
+      - DRONE_SECRET=4a6a6J8LJ4Wc82Ukjww1634ev
+
